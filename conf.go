@@ -83,37 +83,30 @@ func getStringValue(valueField reflect.Value) string {
 	return ""
 }
 
-func assignValue(valueField reflect.Value, userInput string) bool {
-	switch valueField.Kind() {
+func assignValue(field reflect.Value, userInput string) bool {
+	var value reflect.Value
+	var err error
+
+	switch field.Kind() {
 	case reflect.String:
-		valueField.SetString(userInput)
+		value = reflect.ValueOf(userInput)
 
 	case reflect.Int:
-		if userInput == "" {
-			userInput = "0"
-		}
-
-		value, castError := cast.ToInt64E(userInput)
-
-		if castError != nil {
-			return false
-		}
-
-		valueField.SetInt(value)
+		casted, castErr := cast.ToIntE(userInput)
+		err = castErr
+		value = reflect.ValueOf(casted)
 
 	case reflect.Bool:
-		if userInput == "" {
-			userInput = "false"
-		}
-
-		value, castError := cast.ToBoolE(userInput)
-
-		if castError != nil {
-			return false
-		}
-
-		valueField.SetBool(value)
+		casted, castErr := cast.ToBoolE(userInput)
+		err = castErr
+		value = reflect.ValueOf(casted)
 	}
+
+	if err != nil {
+		return false
+	}
+
+	field.Set(value)
 
 	return true
 }

@@ -12,7 +12,7 @@ var Config = struct {
 		Name   string `required:"true"`
 		Email  string `required:"true"`
 		Age    int
-		Active bool   `default:"true"`
+		Active bool `default:"true"`
 	}
 }{}
 
