@@ -9,13 +9,14 @@ import (
 	"github.com/fatih/color"
 )
 
-func Load(config interface{}, path string) {
+func Load(config interface{}, path string, forceWizard bool) {
 	fileConfig := getFileConfig(path)
 
 	iterateKeys(
 		reflect.ValueOf(config).Elem(),
 		parseFileConfigValue(fileConfig, ""),
 		"",
+		forceWizard,
 	)
 
 	writeToFile(config, path)
@@ -39,7 +40,7 @@ func parseFileConfigValue(fileConfig interface{}, key string) map[string]interfa
 	return nil
 }
 
-func iterateKeys(config reflect.Value, fileConfig map[string]interface{}, root string) {
+func iterateKeys(config reflect.Value, fileConfig map[string]interface{}, root string, forceWizard bool) {
 	for i := 0; i < config.NumField(); i++ {
 		valueField := config.Field(i)
 		typeField := config.Type().Field(i)
@@ -49,6 +50,7 @@ func iterateKeys(config reflect.Value, fileConfig map[string]interface{}, root s
 				valueField,
 				parseFileConfigValue(fileConfig, typeField.Name),
 				root+typeField.Name+".",
+				forceWizard,
 			)
 		} else {
 			for {
@@ -59,6 +61,11 @@ func iterateKeys(config reflect.Value, fileConfig map[string]interface{}, root s
 					currentValue = getStringValue(
 						reflect.ValueOf(fileConfig[typeField.Name]),
 					)
+				}
+
+				if !forceWizard && currentValue != "" {
+					assignValue(valueField, currentValue)
+					break
 				}
 
 				if currentValue != "" {

@@ -17,7 +17,7 @@ var Config = struct {
 }{}
 
 func main() {
-	conf.Load(&Config, "./conf.json")
+	conf.Load(&Config, "./conf.json", true)
 
 	fmt.Println(Config)
 }
