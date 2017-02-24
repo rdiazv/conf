@@ -15,6 +15,10 @@ func Load(config interface{}, path string) {
 
     value := prompt(getMessage(typeField))
 
+    if value == "" {
+      value = typeField.Tag.Get("default")
+    }
+
     valueField.SetString(value)
 
     // fmt.Println(typeField.Name, tag.Get("default"), tag.Get("required"))
