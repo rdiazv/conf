@@ -32,10 +32,16 @@ func iterateKeys(val reflect.Value, root string, fromFile bool) {
 					defaultValue = typeField.Tag.Get("default")
 				}
 
-				userInput := prompt(getMessage(root+typeField.Name, defaultValue))
+				required := typeField.Tag.Get("required") == "true"
+				userInput := prompt(getMessage(root+typeField.Name, defaultValue, required))
 
 				if userInput == "" {
 					userInput = defaultValue
+				}
+
+				if userInput == "" && required {
+					fmt.Println("Required field.")
+					continue
 				}
 
 				ok := assignValue(valueField, userInput)
@@ -104,11 +110,15 @@ func assignValue(valueField reflect.Value, userInput string) bool {
 	return true
 }
 
-func getMessage(field string, defaultValue string) string {
+func getMessage(field string, defaultValue string, required bool) string {
 	message := field
 
 	if defaultValue != "" {
-		message = message + " (" + defaultValue + ")"
+		message = message + " [" + defaultValue + "]"
+	}
+
+	if required {
+		message = message + "*"
 	}
 
 	message = message + ": "
