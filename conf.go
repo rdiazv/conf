@@ -1,13 +1,16 @@
 package conf
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/spf13/cast"
+	"io/ioutil"
 	"reflect"
 )
 
 func Load(config interface{}, path string) {
 	iterateKeys(reflect.ValueOf(config).Elem(), "")
+	writeToFile(config, path)
 }
 
 func iterateKeys(val reflect.Value, root string) {
@@ -16,7 +19,7 @@ func iterateKeys(val reflect.Value, root string) {
 		typeField := val.Type().Field(i)
 
 		if valueField.Kind() == reflect.Struct {
-			iterateKeys(valueField, root + typeField.Name + ".")
+			iterateKeys(valueField, root+typeField.Name+".")
 		} else {
 			for {
 				userInput := prompt(getMessage(typeField, root))
@@ -84,4 +87,9 @@ func prompt(message string) string {
 	fmt.Scanln(&response)
 
 	return response
+}
+
+func writeToFile(config interface{}, path string) {
+	data, _ := json.MarshalIndent(config, "", "  ")
+	ioutil.WriteFile(path, data, 0644)
 }
