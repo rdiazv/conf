@@ -1,17 +1,18 @@
 package main
 
 import (
-  "github.com/rdiazv/conf"
-  "fmt"
+	"fmt"
+	"github.com/rdiazv/conf"
 )
 
 var Config = struct {
-  Name string `default:"Test"`
-  Email string `required:"true"`
+	Name  string `default:"Test"`
+	Email string `required:"true"`
+	Age   int    `default:"123"`
 }{}
 
 func main() {
-  conf.Load(&Config, "./conf.json")
+	conf.Load(&Config, "./conf.json")
 
-  fmt.Println(Config)
+	fmt.Println(Config)
 }

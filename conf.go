@@ -1,50 +1,52 @@
 package conf
 
 import (
-  "reflect"
-  "fmt"
+	"fmt"
+	"github.com/spf13/cast"
+	"reflect"
 )
 
 func Load(config interface{}, path string) {
-  val := reflect.ValueOf(config).Elem()
+	val := reflect.ValueOf(config).Elem()
 
-  for i := 0; i < val.NumField(); i++ {
-    valueField := val.Field(i)
-    typeField := val.Type().Field(i)
-    // tag := typeField.Tag
+	for i := 0; i < val.NumField(); i++ {
+		valueField := val.Field(i)
+		typeField := val.Type().Field(i)
 
-    value := prompt(getMessage(typeField))
+		userInput := prompt(getMessage(typeField))
 
-    if value == "" {
-      value = typeField.Tag.Get("default")
-    }
+		if userInput == "" {
+			userInput = typeField.Tag.Get("default")
+		}
 
-    valueField.SetString(value)
+		switch valueField.Kind() {
+		case reflect.String:
+			valueField.SetString(userInput)
 
-    // fmt.Println(typeField.Name, tag.Get("default"), tag.Get("required"))
-
-    // fmt.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", typeField.Name, valueField.Interface(), tag.Get("required"))
-  }
+		case reflect.Int:
+			valueField.SetInt(cast.ToInt64(userInput))
+		}
+	}
 }
 
 func getMessage(field reflect.StructField) string {
-  message := field.Name
-  defaultValue := field.Tag.Get("default")
+	message := field.Name
+	defaultValue := field.Tag.Get("default")
 
-  if (defaultValue != "") {
-    message = message + " (" + defaultValue + ")"
-  }
+	if defaultValue != "" {
+		message = message + " (" + defaultValue + ")"
+	}
 
-  message = message + ": "
+	message = message + ": "
 
-  return message
+	return message
 }
 
 func prompt(message string) string {
-  var response string
+	var response string
 
-  fmt.Print(message)
-  fmt.Scanln(&response)
+	fmt.Print(message)
+	fmt.Scanln(&response)
 
-  return response
+	return response
 }
