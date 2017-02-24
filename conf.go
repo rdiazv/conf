@@ -58,8 +58,6 @@ func iterateKeys(config reflect.Value, fileConfig map[string]interface{}, root s
 					currentValue = getStringValue(
 						reflect.ValueOf(fileConfig[typeField.Name]),
 					)
-
-					fmt.Println(typeField.Name, fileConfig[typeField.Name])
 				}
 
 				if currentValue != "" {
