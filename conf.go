@@ -9,23 +9,33 @@ import (
 )
 
 func Load(config interface{}, path string) {
-	iterateKeys(reflect.ValueOf(config).Elem(), "")
+	ok := readFromFile(config, path)
+	iterateKeys(reflect.ValueOf(config).Elem(), "", ok)
 	writeToFile(config, path)
 }
 
-func iterateKeys(val reflect.Value, root string) {
+func iterateKeys(val reflect.Value, root string, fromFile bool) {
 	for i := 0; i < val.NumField(); i++ {
 		valueField := val.Field(i)
 		typeField := val.Type().Field(i)
 
 		if valueField.Kind() == reflect.Struct {
-			iterateKeys(valueField, root+typeField.Name+".")
+			iterateKeys(valueField, root+typeField.Name+".", fromFile)
 		} else {
 			for {
-				userInput := prompt(getMessage(typeField, root))
+				var defaultValue string
+				currentValue := getStringValue(valueField)
+
+				if fromFile && currentValue != "" {
+					defaultValue = currentValue
+				} else {
+					defaultValue = typeField.Tag.Get("default")
+				}
+
+				userInput := prompt(getMessage(root+typeField.Name, defaultValue))
 
 				if userInput == "" {
-					userInput = typeField.Tag.Get("default")
+					userInput = defaultValue
 				}
 
 				ok := assignValue(valueField, userInput)
@@ -38,6 +48,33 @@ func iterateKeys(val reflect.Value, root string) {
 			}
 		}
 	}
+}
+
+func getStringValue(valueField reflect.Value) string {
+	switch valueField.Kind() {
+	case reflect.String:
+		return valueField.String()
+
+	case reflect.Int:
+		value, castError := cast.ToStringE(valueField.Int())
+
+		if castError != nil {
+			return ""
+		}
+
+		return value
+
+	case reflect.Bool:
+		value, castError := cast.ToStringE(valueField.Bool())
+
+		if castError != nil {
+			return ""
+		}
+
+		return value
+	}
+
+	return ""
 }
 
 func assignValue(valueField reflect.Value, userInput string) bool {
@@ -67,9 +104,8 @@ func assignValue(valueField reflect.Value, userInput string) bool {
 	return true
 }
 
-func getMessage(field reflect.StructField, root string) string {
-	message := root + field.Name
-	defaultValue := field.Tag.Get("default")
+func getMessage(field string, defaultValue string) string {
+	message := field
 
 	if defaultValue != "" {
 		message = message + " (" + defaultValue + ")"
@@ -87,6 +123,17 @@ func prompt(message string) string {
 	fmt.Scanln(&response)
 
 	return response
+}
+
+func readFromFile(config interface{}, path string) bool {
+	data, err := ioutil.ReadFile(path)
+
+	if err == nil {
+		json.Unmarshal(data, &config)
+		return true
+	}
+
+	return false
 }
 
 func writeToFile(config interface{}, path string) {
