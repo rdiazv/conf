@@ -123,26 +123,30 @@ func assignValue(field reflect.Value, userInput string) bool {
 	var value reflect.Value
 	var err error
 
-	switch field.Kind() {
-	case reflect.String:
-		value = reflect.ValueOf(userInput)
+	if userInput != "" {
+		switch field.Kind() {
+		case reflect.String:
+			value = reflect.ValueOf(userInput)
 
-	case reflect.Int:
-		casted, castErr := cast.ToIntE(userInput)
-		err = castErr
-		value = reflect.ValueOf(casted)
+		case reflect.Int:
+			casted, castErr := cast.ToIntE(userInput)
+			err = castErr
+			value = reflect.ValueOf(casted)
 
-	case reflect.Bool:
-		casted, castErr := cast.ToBoolE(userInput)
-		err = castErr
-		value = reflect.ValueOf(casted)
+		case reflect.Bool:
+			casted, castErr := cast.ToBoolE(userInput)
+			err = castErr
+			value = reflect.ValueOf(casted)
+		}
 	}
 
 	if err != nil {
 		return false
 	}
 
-	field.Set(value)
+	if value.IsValid() {
+		field.Set(value)
+	}
 
 	return true
 }
