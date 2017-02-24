@@ -13,20 +13,49 @@ func Load(config interface{}, path string) {
 		valueField := val.Field(i)
 		typeField := val.Type().Field(i)
 
-		userInput := prompt(getMessage(typeField))
+		for {
+			userInput := prompt(getMessage(typeField))
 
-		if userInput == "" {
-			userInput = typeField.Tag.Get("default")
-		}
+			if userInput == "" {
+				userInput = typeField.Tag.Get("default")
+			}
 
-		switch valueField.Kind() {
-		case reflect.String:
-			valueField.SetString(userInput)
+			ok := assignValue(valueField, userInput)
 
-		case reflect.Int:
-			valueField.SetInt(cast.ToInt64(userInput))
+			if ok {
+				break
+			}
+
+			fmt.Printf("Invalid %s value.\n", valueField.Kind())
 		}
 	}
+}
+
+func assignValue(valueField reflect.Value, userInput string) bool {
+	switch valueField.Kind() {
+	case reflect.String:
+		valueField.SetString(userInput)
+
+	case reflect.Int:
+		value, castError := cast.ToInt64E(userInput)
+
+		if castError != nil {
+			return false
+		}
+
+		valueField.SetInt(value)
+
+	case reflect.Bool:
+		value, castError := cast.ToBoolE(userInput)
+
+		if castError != nil {
+			return false
+		}
+
+		valueField.SetBool(value)
+	}
+
+	return true
 }
 
 func getMessage(field reflect.StructField) string {
