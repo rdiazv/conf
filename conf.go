@@ -7,26 +7,32 @@ import (
 )
 
 func Load(config interface{}, path string) {
-	val := reflect.ValueOf(config).Elem()
+	iterateKeys(reflect.ValueOf(config).Elem())
+}
 
+func iterateKeys(val reflect.Value) {
 	for i := 0; i < val.NumField(); i++ {
 		valueField := val.Field(i)
 		typeField := val.Type().Field(i)
 
-		for {
-			userInput := prompt(getMessage(typeField))
+		if valueField.Kind() == reflect.Struct {
+			iterateKeys(valueField)
+		} else {
+			for {
+				userInput := prompt(getMessage(typeField))
 
-			if userInput == "" {
-				userInput = typeField.Tag.Get("default")
+				if userInput == "" {
+					userInput = typeField.Tag.Get("default")
+				}
+
+				ok := assignValue(valueField, userInput)
+
+				if ok {
+					break
+				}
+
+				fmt.Printf("Invalid %s value.\n", valueField.Kind())
 			}
-
-			ok := assignValue(valueField, userInput)
-
-			if ok {
-				break
-			}
-
-			fmt.Printf("Invalid %s value.\n", valueField.Kind())
 		}
 	}
 }

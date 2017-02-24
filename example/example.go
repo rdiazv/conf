@@ -6,10 +6,14 @@ import (
 )
 
 var Config = struct {
-	Name   string `default:"Test"`
-	Email  string `required:"true"`
-	Age    int    `default:"123"`
-	Active bool   `default:"true"`
+	Debug bool `default:"false"`
+
+	User struct {
+		Name   string `default:"Test"`
+		Email  string `required:"true"`
+		Age    int    `default:"123"`
+		Active bool   `default:"true"`
+	}
 }{}
 
 func main() {
