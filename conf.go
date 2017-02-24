@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cast"
 	"io/ioutil"
 	"reflect"
+	"github.com/fatih/color"
 )
 
 func Load(config interface{}, path string) {
@@ -150,19 +151,23 @@ func assignValue(field reflect.Value, userInput string) bool {
 }
 
 func getMessage(field string, defaultValue string, required bool) string {
+	yellow := color.New(color.FgYellow).SprintFunc()
+	red := color.New(color.FgRed).SprintFunc()
+	faint := color.New(color.Reset, color.Faint).SprintFunc()
+
 	message := field
 
 	if defaultValue != "" {
-		message = message + " [" + defaultValue + "]"
+		message = message + faint(" (default: " + defaultValue + ")")
 	}
 
 	if required {
-		message = message + "*"
+		message = message + red(" [required]")
 	}
 
 	message = message + ": "
 
-	return message
+	return yellow(message)
 }
 
 func prompt(message string) string {
