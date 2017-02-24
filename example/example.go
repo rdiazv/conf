@@ -9,7 +9,7 @@ var Config = struct {
 	Debug bool
 
 	User struct {
-		Name   string
+		Name   string `required:"true"`
 		Email  string `required:"true"`
 		Age    int
 		Active bool `default:"true"`

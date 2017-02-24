@@ -58,6 +58,8 @@ func iterateKeys(config reflect.Value, fileConfig map[string]interface{}, root s
 				var currentValue string
 				var currentDefined bool
 
+				required := typeField.Tag.Get("required") == "true"
+
 				if fileConfig != nil && fileConfig[typeField.Name] != nil {
 					_, currentDefined = fileConfig[typeField.Name]
 
@@ -66,7 +68,7 @@ func iterateKeys(config reflect.Value, fileConfig map[string]interface{}, root s
 					)
 				}
 
-				if !forceWizard && currentDefined {
+				if !forceWizard && currentDefined && (!required || currentValue != "") {
 					assignValue(valueField, currentValue)
 					break
 				}
@@ -77,7 +79,6 @@ func iterateKeys(config reflect.Value, fileConfig map[string]interface{}, root s
 					defaultValue = typeField.Tag.Get("default")
 				}
 
-				required := typeField.Tag.Get("required") == "true"
 				userInput := prompt(getMessage(root+typeField.Name, defaultValue, required))
 
 				if userInput == "" {
