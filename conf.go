@@ -9,24 +9,60 @@ import (
 )
 
 func Load(config interface{}, path string) {
-	ok := readFromFile(config, path)
-	iterateKeys(reflect.ValueOf(config).Elem(), "", ok)
+	fileConfig := getFileConfig(path)
+
+	iterateKeys(
+		reflect.ValueOf(config).Elem(),
+		parseFileConfigValue(fileConfig, ""),
+		"",
+	)
+
 	writeToFile(config, path)
 }
 
-func iterateKeys(val reflect.Value, root string, fromFile bool) {
-	for i := 0; i < val.NumField(); i++ {
-		valueField := val.Field(i)
-		typeField := val.Type().Field(i)
+func parseFileConfigValue(fileConfig interface{}, key string) map[string]interface{} {
+	if fileConfig == nil {
+		return nil
+	}
+
+	casted := fileConfig.(map[string]interface{})
+
+	if key == "" {
+		return casted
+	}
+
+	if casted[key] != nil {
+		return casted[key].(map[string]interface{})
+	}
+
+	return nil
+}
+
+func iterateKeys(config reflect.Value, fileConfig map[string]interface{}, root string) {
+	for i := 0; i < config.NumField(); i++ {
+		valueField := config.Field(i)
+		typeField := config.Type().Field(i)
 
 		if valueField.Kind() == reflect.Struct {
-			iterateKeys(valueField, root+typeField.Name+".", fromFile)
+			iterateKeys(
+				valueField,
+				parseFileConfigValue(fileConfig, typeField.Name),
+				root+typeField.Name+".",
+			)
 		} else {
 			for {
 				var defaultValue string
-				currentValue := getStringValue(valueField)
+				var currentValue string
 
-				if fromFile && currentValue != "" {
+				if fileConfig != nil && fileConfig[typeField.Name] != nil {
+					currentValue = getStringValue(
+						reflect.ValueOf(fileConfig[typeField.Name]),
+					)
+
+					fmt.Println(typeField.Name, fileConfig[typeField.Name])
+				}
+
+				if currentValue != "" {
 					defaultValue = currentValue
 				} else {
 					defaultValue = typeField.Tag.Get("default")
@@ -61,8 +97,8 @@ func getStringValue(valueField reflect.Value) string {
 	case reflect.String:
 		return valueField.String()
 
-	case reflect.Int:
-		value, castError := cast.ToStringE(valueField.Int())
+	case reflect.Float64:
+		value, castError := cast.ToStringE(valueField.Float())
 
 		if castError != nil {
 			return ""
@@ -136,15 +172,16 @@ func prompt(message string) string {
 	return response
 }
 
-func readFromFile(config interface{}, path string) bool {
+func getFileConfig(path string) interface{} {
+	var config interface{}
+
 	data, err := ioutil.ReadFile(path)
 
 	if err == nil {
 		json.Unmarshal(data, &config)
-		return true
 	}
 
-	return false
+	return config
 }
 
 func writeToFile(config interface{}, path string) {
