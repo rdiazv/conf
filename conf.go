@@ -7,19 +7,19 @@ import (
 )
 
 func Load(config interface{}, path string) {
-	iterateKeys(reflect.ValueOf(config).Elem())
+	iterateKeys(reflect.ValueOf(config).Elem(), "")
 }
 
-func iterateKeys(val reflect.Value) {
+func iterateKeys(val reflect.Value, root string) {
 	for i := 0; i < val.NumField(); i++ {
 		valueField := val.Field(i)
 		typeField := val.Type().Field(i)
 
 		if valueField.Kind() == reflect.Struct {
-			iterateKeys(valueField)
+			iterateKeys(valueField, root + typeField.Name + ".")
 		} else {
 			for {
-				userInput := prompt(getMessage(typeField))
+				userInput := prompt(getMessage(typeField, root))
 
 				if userInput == "" {
 					userInput = typeField.Tag.Get("default")
@@ -64,8 +64,8 @@ func assignValue(valueField reflect.Value, userInput string) bool {
 	return true
 }
 
-func getMessage(field reflect.StructField) string {
-	message := field.Name
+func getMessage(field reflect.StructField, root string) string {
+	message := root + field.Name
 	defaultValue := field.Tag.Get("default")
 
 	if defaultValue != "" {
