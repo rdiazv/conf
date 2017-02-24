@@ -9,7 +9,7 @@ var Config = struct {
 	Debug bool
 
 	User struct {
-		Name   string `required:"true"`
+		Name   string
 		Email  string `required:"true"`
 		Age    int
 		Active bool `default:"true"`
@@ -17,7 +17,7 @@ var Config = struct {
 }{}
 
 func main() {
-	conf.Load(&Config, "./conf.json", true)
+	conf.Load(&Config, "./conf.json", false)
 
 	fmt.Println(Config)
 }

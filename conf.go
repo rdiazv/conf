@@ -56,14 +56,17 @@ func iterateKeys(config reflect.Value, fileConfig map[string]interface{}, root s
 			for {
 				var defaultValue string
 				var currentValue string
+				var currentDefined bool
 
 				if fileConfig != nil && fileConfig[typeField.Name] != nil {
+					_, currentDefined = fileConfig[typeField.Name]
+
 					currentValue = getStringValue(
 						reflect.ValueOf(fileConfig[typeField.Name]),
 					)
 				}
 
-				if !forceWizard && currentValue != "" {
+				if !forceWizard && currentDefined {
 					assignValue(valueField, currentValue)
 					break
 				}
