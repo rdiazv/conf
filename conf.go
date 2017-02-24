@@ -89,6 +89,10 @@ func assignValue(valueField reflect.Value, userInput string) bool {
 		valueField.SetString(userInput)
 
 	case reflect.Int:
+		if userInput == "" {
+			userInput = "0"
+		}
+
 		value, castError := cast.ToInt64E(userInput)
 
 		if castError != nil {
@@ -98,6 +102,10 @@ func assignValue(valueField reflect.Value, userInput string) bool {
 		valueField.SetInt(value)
 
 	case reflect.Bool:
+		if userInput == "" {
+			userInput = "false"
+		}
+
 		value, castError := cast.ToBoolE(userInput)
 
 		if castError != nil {

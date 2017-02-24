@@ -6,12 +6,12 @@ import (
 )
 
 var Config = struct {
-	Debug bool `default:"false"`
+	Debug bool
 
 	User struct {
-		Name   string `default:"Test"`
+		Name   string `required:"true"`
 		Email  string `required:"true"`
-		Age    int    `default:"123"`
+		Age    int
 		Active bool   `default:"true"`
 	}
 }{}
